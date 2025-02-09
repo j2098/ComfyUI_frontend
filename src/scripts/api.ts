@@ -171,6 +171,15 @@ export class ComfyApi extends EventTarget {
     this.initialClientId = sessionStorage.getItem('clientId')
   }
 
+  getToken() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+    return localStorage.getItem('token');
+  }
+
   internalURL(route: string): string {
     return this.api_base + '/internal' + route
   }
@@ -190,6 +199,11 @@ export class ComfyApi extends EventTarget {
     if (!options.headers) {
       options.headers = {}
     }
+    const token = this.getToken();
+    if (token) {
+      options.headers['Authorization'] = `${token}`;
+    }
+
     if (!options.cache) {
       options.cache = 'no-cache'
     }
@@ -278,8 +292,16 @@ export class ComfyApi extends EventTarget {
     if (existingSession) {
       existingSession = '?clientId=' + existingSession
     }
+    let wsUrl = `ws${window.location.protocol === 'https:' ? 's' : ''}://${this.api_host}${this.api_base}/ws${existingSession}`;
+    if (this.getToken()) {
+      if (wsUrl.indexOf('?') === -1) {
+        wsUrl += '?token=' + this.getToken();
+      } else {
+        wsUrl += '&token=' + this.getToken();
+      }
+    }
     this.socket = new WebSocket(
-      `ws${window.location.protocol === 'https:' ? 's' : ''}://${this.api_host}${this.api_base}/ws${existingSession}`
+      wsUrl
     )
     this.socket.binaryType = 'arraybuffer'
 

@@ -9,7 +9,7 @@
       <h1 class="comfyui-logo mx-2 app-drag">ComfyUI</h1>
       <CommandMenubar />
       <div class="flex-grow min-w-0 app-drag h-full">
-        <WorkflowTabs v-if="workflowTabsPosition === 'Topbar'" />
+        <WorkflowTabs v-if="workflowTabsPosition === 'Topbar' && !isEmbedded()" />
       </div>
       <div class="comfyui-menu-right flex-shrink-0" ref="menuRight"></div>
       <Actionbar />
@@ -53,6 +53,7 @@ import { useWorkspaceStore } from '@/stores/workspaceStore'
 import {
   electronAPI,
   isElectron,
+  isEmbedded,
   isNativeWindow,
   showNativeMenu
 } from '@/utils/envUtil'

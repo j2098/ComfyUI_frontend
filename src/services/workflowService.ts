@@ -15,6 +15,7 @@ import { ComfyWorkflowJSON } from '@/types/comfyWorkflow'
 import { appendJsonExt } from '@/utils/formatUtil'
 
 import { useDialogService } from './dialogService'
+import { isEmbedded } from '@/utils/envUtil'
 
 export const useWorkflowService = () => {
   const settingStore = useSettingStore()
@@ -46,6 +47,9 @@ export const useWorkflowService = () => {
     filename: string,
     promptProperty: 'workflow' | 'output'
   ): Promise<void> => {
+    if (isEmbedded()) {
+      return;
+    }
     const workflow = workflowStore.activeWorkflow
     if (workflow?.path) {
       filename = workflow.filename
@@ -62,6 +66,9 @@ export const useWorkflowService = () => {
    * @param workflow The workflow to save
    */
   const saveWorkflowAs = async (workflow: ComfyWorkflow) => {
+    if (isEmbedded()) {
+      return;
+    }
     const newFilename = await dialogService.prompt({
       title: t('workflowService.saveWorkflow'),
       message: t('workflowService.enterFilename') + ':',
@@ -109,6 +116,9 @@ export const useWorkflowService = () => {
    * @param workflow The workflow to save
    */
   const saveWorkflow = async (workflow: ComfyWorkflow) => {
+    if (isEmbedded()) {
+      return;
+    }
     if (workflow.isTemporary) {
       await saveWorkflowAs(workflow)
     } else {

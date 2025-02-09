@@ -7,16 +7,29 @@ import { useWorkflowService } from '@/services/workflowService'
 import { useModelStore } from '@/stores/modelStore'
 import { useSettingStore } from '@/stores/settingStore'
 import { useWorkflowStore } from '@/stores/workflowStore'
+import { isEmbedded } from '@/utils/envUtil'
+import { FlowConfig } from '@/constants/flowConfig'
 
 export function useWorkflowPersistence() {
   const workflowStore = useWorkflowStore()
   const settingStore = useSettingStore()
 
-  const persistCurrentWorkflow = () => {
+  const persistCurrentWorkflow = async() => {
     const workflow = JSON.stringify(comfyApp.serializeGraph())
     localStorage.setItem('workflow', workflow)
     if (api.clientId) {
       sessionStorage.setItem(`workflow:${api.clientId}`, workflow)
+    }
+
+    if (isEmbedded()) {
+      const p = await comfyApp.graphToPrompt()
+      const json = JSON.stringify(p['output'], null, 2)
+      window.parent.postMessage({
+        flowId: FlowConfig.flowId,
+        type: 'change',
+        workflow: workflow,
+        workflowApi: json,
+      }, '*');
     }
   }
 

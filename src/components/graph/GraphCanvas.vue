@@ -6,7 +6,7 @@
     <LiteGraphCanvasSplitterOverlay
       v-if="comfyAppReady && betaMenuEnabled && !workspaceStore.focusMode"
     >
-      <template #side-bar-panel>
+      <template #side-bar-panel v-if="!isEmbedded()">
         <SideToolbar />
       </template>
       <template #bottom-panel>
@@ -14,7 +14,7 @@
       </template>
       <template #graph-canvas-panel>
         <SecondRowWorkflowTabs
-          v-if="workflowTabsPosition === 'Topbar (2nd-row)'"
+          v-if="workflowTabsPosition === 'Topbar (2nd-row)' && !isEmbedded()"
         />
         <GraphCanvasMenu v-if="canvasMenuEnabled" />
       </template>
@@ -61,6 +61,8 @@ import { useNodeDefStore } from '@/stores/nodeDefStore'
 import { useSettingStore } from '@/stores/settingStore'
 import { useColorPaletteStore } from '@/stores/workspace/colorPaletteStore'
 import { useWorkspaceStore } from '@/stores/workspaceStore'
+import { isEmbedded } from '@/utils/envUtil';
+import { FlowConfig } from '@/constants/flowConfig'
 
 const emit = defineEmits(['ready'])
 const canvasRef = ref<HTMLCanvasElement | null>(null)

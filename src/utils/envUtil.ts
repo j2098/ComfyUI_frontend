@@ -18,3 +18,7 @@ export function showNativeMenu(event: MouseEvent) {
 export function isNativeWindow() {
   return isElectron() && !!window.navigator.windowControlsOverlay?.visible
 }
+
+export function isEmbedded() {
+  return window.top !== window.self;
+}

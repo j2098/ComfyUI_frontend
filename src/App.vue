@@ -1,5 +1,5 @@
 <template>
-  <router-view />
+  <router-view v-if="ready" />
   <ProgressSpinner
     v-if="isLoading"
     class="absolute inset-0 flex justify-center items-center h-screen"
@@ -12,19 +12,21 @@
 import { useEventListener } from '@vueuse/core'
 import BlockUI from 'primevue/blockui'
 import ProgressSpinner from 'primevue/progressspinner'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 
 import GlobalDialog from '@/components/dialog/GlobalDialog.vue'
 import config from '@/config'
 import { useWorkspaceStore } from '@/stores/workspaceStore'
 
-import { electronAPI, isElectron } from './utils/envUtil'
+import { electronAPI, isElectron, isEmbedded } from './utils/envUtil'
+import { FlowConfig } from './constants/flowConfig'
 
 const workspaceStore = useWorkspaceStore()
 const isLoading = computed<boolean>(() => workspaceStore.spinner)
 const handleKey = (e: KeyboardEvent) => {
   workspaceStore.shiftDown = e.shiftKey
 }
+const ready = ref(!isEmbedded());
 useEventListener(window, 'keydown', handleKey)
 useEventListener(window, 'keyup', handleKey)
 
@@ -45,6 +47,26 @@ onMounted(() => {
 
   if (isElectron()) {
     document.addEventListener('contextmenu', showContextMenu)
+  }
+})
+watchEffect((onCleanup) => {
+  if (isEmbedded()) {
+    const listener = (event: any) => {
+      const data = event.data;
+      if (!data || !data.type) return;
+      if (data.type === 'init' && data.workflow) {
+        console.log('init', data);
+        sessionStorage.clear();
+        localStorage.clear();
+        localStorage.setItem('workflow', data.workflow);
+        FlowConfig.flowId = data.flowId;
+        ready.value = true;
+      }
+    }
+    window.addEventListener('message', listener);
+    onCleanup(() => {
+      window.removeEventListener('message', listener);
+    });
   }
 })
 </script>
