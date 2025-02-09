@@ -16,6 +16,7 @@ import { appendJsonExt } from '@/utils/formatUtil'
 
 import { useDialogService } from './dialogService'
 import { isEmbedded } from '@/utils/envUtil'
+import { FlowConfig } from '@/constants/flowConfig'
 
 export const useWorkflowService = () => {
   const settingStore = useSettingStore()
@@ -117,6 +118,14 @@ export const useWorkflowService = () => {
    */
   const saveWorkflow = async (workflow: ComfyWorkflow) => {
     if (isEmbedded()) {
+      const p = await app.graphToPrompt()
+      const json = JSON.stringify(p['output'], null, 2)
+      window.parent.postMessage({
+        flowId: FlowConfig.flowId,
+        type: 'save',
+        workflow: JSON.stringify(workflow.activeState),
+        workflowApi: json
+      }, '*');
       return;
     }
     if (workflow.isTemporary) {
